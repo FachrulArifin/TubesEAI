@@ -32,13 +32,24 @@ class OrderController extends Controller
                 'gross_amount' => $order->total_price,
             ),
             'customer_details' => array(
-                'name' => $order->name,
+                'first_name' => $order->firstname,
+                'last_name' => $order->lastname,
                 'phone' => $order->phone,
             ),
         );
 
         $snapToken = \Midtrans\Snap::getSnapToken($params);
-        dd($snapToken);
-        //return view('checkout', compact('snapToken', 'order'));
+        return view('checkout', compact('snapToken', 'order'));
+    }
+
+    public function callback(Request $request){
+        $serverKey = config('midtrans.server_key');
+        $hashed = hash("sha512" , $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
+        if($hashed == $request->signature_key){
+            if($request->transaction_status == 'capture'){
+                $order = Order::find($request->order_id);
+                $order-update(['status' => 'paid']);
+            }
+        }
     }
 }
