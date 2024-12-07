@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -43,13 +43,32 @@ class OrderController extends Controller
     }
 
     public function callback(Request $request){
-        $serverKey = config('midtrans.server_key');
-        $hashed = hash("sha512" , $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
-        if($hashed == $request->signature_key){
-            if($request->transaction_status == 'capture'){
-                $order = Order::find($request->order_id);
-                $order-update(['status' => 'paid']);
+        try {
+            //\Log::info('Received Midtrans callback', $request->all());
+    
+            $serverKey = config('midtrans.server_key');
+            $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
+            
+            if ($hashed == $request->signature_key) {
+                if ($request->transaction_status == 'settlement') {
+                    $order = Order::find($request->order_id);
+                    if ($order) {
+                        $order->update(['status' => 'paid']);
+                    } else {
+                        //\Log::error('Order not found', ['order_id' => $request->order_id]);
+                    }
+                }
+            } else {
+                //\Log::error('Signature mismatch', ['expected' => $hashed, 'received' => $request->signature_key]);
             }
+        } catch (\Exception $e) {
+            //\Log::error('Error in Midtrans callback', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
+    }
+
+    public function invoice($id){
+        $order = Order::find($id);
+        return view('invoice', compact('order'));
     }
 }
