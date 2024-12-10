@@ -10,6 +10,7 @@ Route::get('/', [OrderController::class, 'index']);
 // Routes Login Controll
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::get('/register', [RegisterController::class, 'index'])->name('register');
+Route::post('/register', [RegisterController::class, 'create'])->name('register_account');
 
 // Routes Order
 

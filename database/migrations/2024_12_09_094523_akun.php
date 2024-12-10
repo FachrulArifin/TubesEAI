@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('akun', function (Blueprint $table) {
+            $table->id();
+            $table->string('email');
+            $table->text('password');
+            $table->enum('role', ['user','admin']);
+        });
     }
 
     /**
@@ -19,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('akun');
     }
 };
