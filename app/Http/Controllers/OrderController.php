@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index(){
-        return view('index');
-    }
+    // public function index(){
+    //     return view('index');
+    // }
 
     public function checkout(Request $request){
         $request->request->add(['total_price' => $request->qty * 10000, 'status' => 'Unpaid']);
@@ -39,7 +39,7 @@ class OrderController extends Controller
         );
 
         $snapToken = \Midtrans\Snap::getSnapToken($params);
-        return view('checkout', compact('snapToken', 'order'));
+        return view('order.checkout', compact('snapToken', 'order'));
     }
 
     public function callback(Request $request){
