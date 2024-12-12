@@ -53,7 +53,6 @@
           @csrf
           <button type="submit" class="btn btn-outline-primary">Logout</button>
         </form>
-
       @else
         <a href="{{ route('showLogin') }}">
         <button type="button" class="btn btn-outline-primary">Login</button>

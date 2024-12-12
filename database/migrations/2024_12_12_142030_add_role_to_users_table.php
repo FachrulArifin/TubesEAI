@@ -9,22 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('akuns', function (Blueprint $table) {
-            $table->id();
-            $table->string('email');
-            $table->text('password');
-            $table->enum('role', ['user','admin']);
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user'); // Nilai default adalah 'user'
         });
     }
+    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('akun');
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };

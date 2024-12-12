@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'loginAccount'])->name('loginAccount');
     Route::get('/register', [AuthController::class, 'showPageRegister'])->name('showRegister');
     Route::post('/register', [AuthController::class, 'createAccount'])->name('createAccount');
+});
+
+
+// Untuk admin
+Route::middleware(['auth', 'CheckRole:admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 
 

@@ -26,20 +26,33 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->save();
-        dd($user);
-        //return redirect()->route('showLogin');
+        return redirect()->route('showLogin');
     }
 
-    public function loginAccount(Request $request){
-        $data = $request->only('email', 'password');
+    public function loginAccount(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
 
-        if(Auth::attempt($data)){
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            // Regenerate session
             $request->session()->regenerate();
-            return redirect()->route('homePage');
-        } else{
-            return redirect()->back()->with('gagal', 'Email atau Password salah!');
+
+            // Redirect berdasarkan role
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->role === 'user') {
+                return redirect()->route('homePage');
+            } else {
+                Auth::logout(); // Logout jika role tidak valid
+                return redirect()->route('login')->with('gagal', 'Role tidak dikenali!');
+            }
         }
+
+        return redirect()->back()->with('gagal', 'Email atau Password salah!');
     }
+
 
     public function logout(){
         Auth::logout();
