@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Models\Products;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     public function homePage(){
-        return view('index');
+        $data = Products::all();
+        return view('index', compact('data'));
     }
     public function showPageLogin(){
         return view('login');

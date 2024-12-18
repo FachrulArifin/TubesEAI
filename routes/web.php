@@ -19,6 +19,13 @@ Route::middleware('guest')->group(function () {
 // Untuk admin
 Route::middleware(['auth', 'CheckRole:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/addProduct', [AdminController::class, 'viewAddProduct'])->name('admin.viewAddProduct');
+    Route::get('/admin/viewHistory', [AdminController::class, 'viewHistory'])->name('admin.viewHistory');
+    Route::post('/admin/addProduct', [AdminController::class, 'addProduct'])->name('admin.addProduct');
+    Route::get('/admin/addProducts', [AdminController::class, 'getProducts'])->name('admin.getProducts');
+    Route::get('/admin/addProducts/{id}', [AdminController::class, 'getProductById'])->name('admin.getProductById');
+    Route::delete('/admin/addProducts/{id}', [AdminController::class, 'deleteProduct'])->name('admin.deleteProduct');
+    Route::put('/admin/addProducts/{id}', [AdminController::class, 'updateProduct'])->name('admin.updateProduct');
 });
 
 
