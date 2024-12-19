@@ -87,6 +87,15 @@
           <h1 class="fw-light">Durian Runtuh</h1>
           <p class="lead text-muted">merupakan platform pembelian durian secara online dan memiliki berbagai jenis durian.</p>
         </div>
+        @if(session('cart'))
+          <ul>
+            @foreach(session('cart') as $item)
+              <li>Product ID: {{ $item['product_id'] }}</li>
+              <li>Product ID: {{ $item['product_id'] }}</li>
+              <li>Product Quantity: {{ $item['quantity'] }}</li>
+            @endforeach
+          </ul>
+          @endif
       </div>
     </section>
 
@@ -98,17 +107,23 @@
             <div class="col">
 
               <!-- Card Start -->
-              <div class="card mb-3 h-100" style="width: 18rem;">
-                <img src="{{ asset('storage/' . $item->file_path) }}" class="card-img-top" alt="Durian" style="height: 200px;">
-                <div class="card-body">
-                  <h5 class="card-title">{{ $item->name }}</h5>
-                  <p class="card-text">{{ $item->description }}</p>
+               <form action="{{ Route('addToCard') }}" method="post">
+                @csrf
+                <div class="card mb-3 h-100" style="width: 18rem;">
+                  <img src="{{ asset('storage/' . $item->file_path) }}" class="card-img-top" alt="Durian" style="height: 200px;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ $item->name }}</h5>
+                    <p class="card-text">{{ $item->description }}</p>
+                  </div>
+                  <div class="card-footer mt-auto d-flex justify-content-between">
+                    <input type="hidden" name="product_id" value="{{ $item->id }}">
+                    <input type="hidden" name="product_qty" value="1">
+                    <button class="btn btn-primary add-to-cart">Tambah</button>
+                    <p class="card-text mb-0"><small class="text-muted">stock {{ $item->stock }}</small></p> 
+                  </div>              
                 </div>
-                <div class="card-footer mt-auto d-flex justify-content-between">
-                  <button class="btn btn-primary add-to-cart" data-id="{{ $item->id }}">Tambah</button>
-                  <p class="card-text mb-0"><small class="text-muted">stock {{ $item->stock }}</small></p> 
-                </div>              
-              </div>
+               </form>
+              
               <!-- End Card -->
 
             </div>
@@ -134,25 +149,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
   <script>
-    $(document).on('click', '.add-to-cart', function () {
-      let productId = $(this).data('id');
-  
-      // Mengirim data ke route untuk menyimpan produk ke session
-      $.ajax({
-        url: "/add-to-cart", // ganti dengan URL yang sesuai
-        method: 'POST',
-        data: {
-          product_id: productId,
-          _token: '{{ csrf_token() }}'  // Menambahkan CSRF token
-        },
-        success: function (response) {
-          alert('Produk berhasil ditambahkan!');
-        },
-        error: function () {
-          alert('Gagal menambahkan produk.');
-        }
-      });
-    });
 
   </script>
 </html>

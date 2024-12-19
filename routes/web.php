@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'homePage'])->name('homePage');
@@ -34,4 +35,5 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/checkout', [OrderController::class, 'checkout']);
     Route::get('/invoice/{id}', [OrderController::class, 'invoice']);
+    Route::post('/add-to-cart', [UserController::class, 'addToCart'])->name('addToCard');
 });
