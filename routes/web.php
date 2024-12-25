@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'homePage'])->name('homePage');
 
+
 // Routes Login Controll
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showPageLogin'])->name('showLogin');
@@ -30,10 +31,16 @@ Route::middleware(['auth', 'CheckRole:admin'])->group(function () {
 });
 
 
-// Routes Order
+// Untuk User
+Route::middleware('auth', 'CheckRole:user')->group(function () {
+    Route::get('/user', [UserController::class, 'showUser'])->name('user.showUser');
+    Route::post('/add-to-cart', [UserController::class, 'addToCart'])->name('addToCard');
+    Route::post('/user/checkout', [OrderController::class, 'viewCheckout'])->name('user.viewCheckout');
+});
+
+// Untuk Order
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::post('/checkout', [OrderController::class, 'checkout'])->name('user.checkout');
     Route::get('/invoice/{id}', [OrderController::class, 'invoice']);
-    Route::post('/add-to-cart', [UserController::class, 'addToCart'])->name('addToCard');
 });

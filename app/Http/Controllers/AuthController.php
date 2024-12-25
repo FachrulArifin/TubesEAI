@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserLoggedIn;
 use App\Models\Products;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -44,7 +45,9 @@ class AuthController extends Controller
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'user') {
-                return redirect()->route('homePage');
+                $data = $user->products;
+                //return view('index', compact('data'));
+                return redirect()->route('user.showUser')->with('data', $data);
             } else {
                 Auth::logout(); // Logout jika role tidak valid
                 return redirect()->route('login')->with('gagal', 'Role tidak dikenali!');
@@ -56,6 +59,7 @@ class AuthController extends Controller
 
 
     public function logout(){
+        session()->forget('cart');
         Auth::logout();
         return redirect()->route('homePage');
     }
