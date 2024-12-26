@@ -100,7 +100,7 @@
                             <td>
                                 <!-- Input untuk price -->
                                 <input type="hidden" name="prices[{{ $item->id }}]" value="{{ $item->price }}" class="price-input" data-id="{{ $item->id }}" disabled>
-                                {{ money($item->price, 'IDR', true) }}
+                                {{ money($item->price * $item->pivot->quantity, 'IDR', true) }}
                             </td>
                         </tr>
                         @endforeach
@@ -121,6 +121,15 @@
         <div class="col-lg-6 col-md-8 mx-auto">
           <h1 class="fw-light">Durian Runtuh</h1>
           <p class="lead text-muted">merupakan platform pembelian durian secara online dan memiliki berbagai jenis durian.</p>
+          <div class="container">
+            <form action="{{ route('products.search') }}" method="POST" class="mb-4">
+              @csrf
+              <div class="input-group">
+                <input type="text" name="query" class="form-control" placeholder="Cari produk..." value="{{ old('query') }}">
+                <button type="submit" class="btn btn-primary">Cari</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </section>
@@ -133,24 +142,25 @@
             <div class="col">
 
               <!-- Card Start -->
-               <form action="{{ Route('addToCard') }}" method="post">
-                @csrf
-                <div class="card mb-3 h-100" style="width: 18rem;">
-                  <img src="{{ asset('storage/' . $item->file_path) }}" class="card-img-top" alt="Durian" style="height: 200px;">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ $item->name }}</h5>
-                    <p class="card-text">{{ $item->description }}</p>
+              <form action="{{ route('addToCard') }}" method="post">
+                  @csrf
+                  <div class="card mb-3 h-100" style="width: 18rem;">
+                      <img src="{{ asset('storage/' . $item->file_path) }}" class="card-img-top" alt="Durian" style="height: 200px;">
+                      <div class="card-body">
+                          <h5 class="card-title">{{ $item->name }}</h5>
+                          <p class="card-text">{{ $item->description }}</p>
+                      </div>
+                      <div class="card-footer mt-auto d-flex justify-content-between">
+                          <input type="hidden" name="product_id" value="{{ $item->id }}">
+                          <input type="hidden" name="product_name" value="{{ $item->name }}">
+                          <input type="hidden" name="product_img" value="{{ $item->file_path }}">
+                          <input type="number" name="product_qty" value="1" min="1" class="form-control" style="width: 4rem;">
+                          <button class="btn btn-primary add-to-cart">Tambah</button>
+                          <p class="card-text mb-0"><small class="text-muted"> {{ money($item->price, 'IDR', true) }}</small></p> 
+                      </div>              
                   </div>
-                  <div class="card-footer mt-auto d-flex justify-content-between">
-                    <input type="hidden" name="product_id" value="{{ $item->id }}">
-                    <input type="hidden" name="product_qty" value="1">
-                    <input type="hidden" name="product_name" value="{{ $item->name }}">
-                    <input type="hidden" name="product_img" value="{{ $item->file_path }}">
-                    <button class="btn btn-primary add-to-cart">Tambah</button>
-                    <p class="card-text mb-0"><small class="text-muted">stock {{ $item->stock }}</small></p> 
-                  </div>              
-                </div>
-               </form>
+              </form>
+
               
               <!-- End Card -->
 

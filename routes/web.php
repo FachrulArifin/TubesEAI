@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'homePage'])->name('homePage');
@@ -15,6 +16,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'loginAccount'])->name('loginAccount');
     Route::get('/register', [AuthController::class, 'showPageRegister'])->name('showRegister');
     Route::post('/register', [AuthController::class, 'createAccount'])->name('createAccount');
+    Route::post('/products/search', [AuthController::class, 'search'])->name('products.search');
 });
 
 
@@ -36,6 +38,9 @@ Route::middleware('auth', 'CheckRole:user')->group(function () {
     Route::get('/user', [UserController::class, 'showUser'])->name('user.showUser');
     Route::post('/add-to-cart', [UserController::class, 'addToCart'])->name('addToCard');
     Route::post('/user/checkout', [OrderController::class, 'viewCheckout'])->name('user.viewCheckout');
+    Route::get('/checkout', [OrderController::class, 'viewCheckoutPage'])->name('user.viewCheckoutPage');
+    
+
 });
 
 // Untuk Order

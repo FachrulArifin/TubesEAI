@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
+use App\Models\Products;
 use Illuminate\Foundation\Exceptions\Renderer\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class OrderController extends Controller
 {
     public function index(){
         return view('home');
+    }
+
+    public function viewCheckoutPage(){
+        return view('user.order.checkout');
     }
 
     public function viewCheckout(Request $request){
@@ -29,61 +36,79 @@ class OrderController extends Controller
         $name = $user->name;
         $email = $user->email;
         
-        //dd($order);
         return view('user.order.checkout', compact('order', 'name', 'email'));
     }
 
-    public function checkout(Request $request){
-        $request->request->add(['status' => 'Unpaid']);
-        $order = Order::create($request->all());
-        // Inisialisasi total_price
-        // $totalPrice = 0;
-
-        // // Loop melalui selected_items untuk menghitung total_price
-        // if ($request->has('selected_items')) {
-        //     foreach ($request->selected_items as $itemId) {
-        //         $quantity = $request->quantities[$itemId] ?? 0;
-        //         $price = $request->prices[$itemId] ?? 0;
-
-        //         // Penjumlahan total price
-        //         $totalPrice += $quantity * $price;
-        //     }
-        // }
-
-        // // Tambahkan total_price dan status ke dalam request
-        // $request->request->add([
-        //     'total_price' => $totalPrice,
-        //     'status' => 'Unpaid',
-        // ]);
-
-        // $order = Order::create($request->all());
-        dd($order);
-
-        // //REQUEST START
-
-        // // Set your Merchant Server Key
-        // \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        // // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-        // \Midtrans\Config::$isProduction = false;
-        // // Set sanitization on (default)
-        // \Midtrans\Config::$isSanitized = true;
-        // // Set 3DS transaction for credit card to true
-        // \Midtrans\Config::$is3ds = true;
-
-        // $params = array(
-        //     'transaction_details' => array(
-        //         'order_id' => $order->id,
-        //         'gross_amount' => $order->total_price,
-        //     ),
-        //     'customer_details' => array(
-        //         'name' => $order->firstname,
-        //         'address' => $order->lastname,
-        //         'phone' => $order->phone,
-        //     ),
-        // );
-
-        // $snapToken = \Midtrans\Snap::getSnapToken($params);
-        // return view('order.checkout', compact('snapToken', 'order'));
+    public function checkout(Request $request)
+    {
+        try {
+            // Validasi input
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'email' => 'nullable|email',
+                'address' => 'required|string',
+                'phone' => 'required|string',
+                'total_price' => 'required|integer',
+                'products' => 'required|array',
+                'quantities' => 'required|array',
+            ]);
+    
+            // Proses data pesanan
+            $order = Order::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'address' => $validated['address'],
+                'phone' => $validated['phone'],
+                'total_price' => $validated['total_price'],
+            ]);
+    
+            foreach ($validated['products'] as $index => $productId) {
+                $order->products()->attach($productId, [
+                    'quantity' => $validated['quantities'][$index],
+                    'price' => Products::find($productId)->price,
+                ]);
+            }
+    
+            // Konfigurasi Midtrans
+            \Midtrans\Config::$serverKey = config('midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('midtrans.is_production');
+            \Midtrans\Config::$isSanitized = true;
+            \Midtrans\Config::$is3ds = true;
+    
+            // Buat payload untuk Midtrans
+            $payload = [
+                'transaction_details' => [
+                    'order_id' => $order->id,
+                    'gross_amount' => $order->total_price,
+                ],
+                'customer_details' => [
+                    'first_name' => $order->name,
+                    'email' => $order->email,
+                    'phone' => $order->phone,
+                ],
+                'item_details' => $order->products->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'price' => $product->pivot->price,
+                        'quantity' => $product->pivot->quantity,
+                        'name' => $product->name,
+                    ];
+                })->toArray(),
+            ];
+    
+            // Dapatkan Snap token
+            $snapToken = \Midtrans\Snap::getSnapToken($payload);
+    
+            // Kembalikan respons JSON
+            return response()->json([
+                'snapToken' => $snapToken,
+                'orderId' => $order->id,
+            ]);
+        } catch (\Exception $e) {
+            // Tangani error dan log
+            Log::error('Checkout Error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function callback(Request $request){

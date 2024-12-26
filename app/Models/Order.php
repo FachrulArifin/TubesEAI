@@ -9,11 +9,13 @@ class Order extends Model
 {
     use HasFactory;
     protected $guarded =[];
+    
+    protected $fillable = ['name', 'email', 'address', 'phone', 'total_price'];
 
-    protected $fillable = ['total_price', 'status', 'quantities', 'prices'];
-
-    protected $casts = [
-        'quantities' => 'array', // Pastikan data dikonversi menjadi array
-        'prices' => 'array',
-    ];
+    public function products()
+    {
+        return $this->belongsToMany(Products::class, 'order_product')
+                    ->withPivot('quantity', 'price')
+                    ->withTimestamps();
+    }
 }

@@ -22,6 +22,26 @@ class AuthController extends Controller
         return view('register');
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+    
+        // Validasi input
+        $request->validate([
+            'query' => 'required|string|max:255',
+        ]);
+
+        // Pencarian produk
+        $data = Products::where('name', 'like', '%' . $query . '%')
+                    ->orWhere('description', 'like', '%' . $query . '%')
+                    ->get();
+
+        //dd($data);
+        //return view('your-view-file-name', compact('data'));
+        
+        return view('index', compact('data'));
+    }
+
     public function createAccount(Request $request){
         $user = new User();
         $user->name = $request->name;
