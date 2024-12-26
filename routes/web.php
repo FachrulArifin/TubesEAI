@@ -30,6 +30,8 @@ Route::middleware(['auth', 'CheckRole:admin'])->group(function () {
     Route::get('/admin/addProducts/{id}', [AdminController::class, 'getProductById'])->name('admin.getProductById');
     Route::delete('/admin/addProducts/{id}', [AdminController::class, 'deleteProduct'])->name('admin.deleteProduct');
     Route::put('/admin/addProducts/{id}', [AdminController::class, 'updateProduct'])->name('admin.updateProduct');
+    Route::get('/admin/user', [AdminController::class, 'viewUserList'])->name('admin.showUser');
+    Route::get('/admin/userControl', [AdminController::class, 'showListUser'])->name('admin.showListUser');
 });
 
 

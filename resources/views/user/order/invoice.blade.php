@@ -7,46 +7,52 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 </head>
 <body>
-    <div class="container my-3">
-        <h1>Toko Durian</h1>
+    <div class="container my-3 p-3">
+        
+        <div class="card mt-5">
+            <div class="card-body mx-4">
+              <div class="container">
+                <p class="my-5 mx-5" style="font-size: 30px;">Thank for your purchase</p>
+                <div class="row">
+                  <ul class="list-unstyled">
+                    <li class="text-black">{{$order->name}}</li>
+                    <li class="text-muted mt-1"><span class="text-black">Invoice</span> {{$order->id}}</li>
+                    <li class="text-black mt-1">{{$order->updated_at}}</li>
+                  </ul>
+                </div>
 
-        <!-- Card Start -->
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title">Invoice</h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                
-                <h5 class="card-title">Detil Pesanan</h5>
-                <table>
-                    <tr>
-                        <td>Nama</td>
-                        <td> : {{$order->frontname}} {{$order->backname}}</td>
-                    </tr>
-                    <tr>
-                        <td>Alamat</td>
-                        <td> : {{$order->addres}}</td>
-                    </tr>
-                    <tr>
-                        <td>No Telpon</td>
-                        <td> : {{$order->phone}}</td>
-                    </tr>
-                    <tr>
-                        <td>Jumlah</td>
-                        <td> : {{$order->qty}}</td>
-                    </tr>
-                    <tr>
-                        <td>Total Harga</td>
-                        <td> : {{$order->total_price}}</td>
-                    </tr>
-                    <tr>
-                        <td>Status</td>
-                        <td> : {{$order->status}}</td>
-                    </tr>
-                </table>
+                @foreach($order->products as $product)
+                <div class="row">
+                  <div class="col-xl-9">
+                    <p>{{ $product->name }}</p>
+                  </div>
+                  <div class="col-xl-1">
+                    <p>{{ $product->pivot->quantity }}</p>
+                  </div>
+                  <div class="col-xl-2">
+                    <p class="float-end">{{ money($product->price, 'IDR', true) }}
+                    </p>
+                  </div>
+                  <hr>
+                </div>
+                @endforeach
 
+                <div class="row text-black">
+          
+                  <div class="col-xl-12">
+                    <p class="float-end fw-bold">{{ money($order->total_price, 'IDR', true) }}
+                    </p>
+                  </div>
+                  <hr style="border: 2px solid black;">
+                </div>
+                <div class="text-center" style="margin-top: 90px;">
+                  <a href="{{ url()->secure(route('user.showUser', [], false)) }}"><u class="text-info">Kembali ke halaman utama</u></a>
+                  <p>Terima kasih telah melakukan pembayaran. </p>
+                </div>
+          
+              </div>
             </div>
-        </div>
-        <!-- Card End -->
+          </div>
 
     </div>
 

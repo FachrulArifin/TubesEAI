@@ -33,15 +33,15 @@
   </head>
   <body>
     
-<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Company name</a>
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow ">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Durian Runtuh</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+
   <div class="navbar-nav">
     <div class="nav-item text-nowrap">
-    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+    <form action="{{ url()->secure(route('logout', [], false)) }}" method="POST" style="display: inline;">
       @csrf
       <button type="submit" class="btn btn-primary">Logout</button>
     </form>
@@ -49,7 +49,7 @@
   </div>
 </header>
 
-<div class="container-fluid">
+<div class="container-fluid mt- 3">
   <div class="row">
     <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
       <div class="position-sticky pt-3">
@@ -61,15 +61,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ Route('admin.viewAddProduct') }}">
+            <a class="nav-link" href="{{ url()->secure(route('admin.viewAddProduct', [], false)) }}">
               <span data-feather="file"></span>
               Tambah Produk
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ Route('admin.viewHistory') }}">
+            <a class="nav-link" href="{{ url()->secure(route('admin.showUser', [], false)) }}">
               <span data-feather="shopping-cart"></span>
-              History Transaksi
+              Daftar Pengguna
             </a>
           </li>
         </ul>
@@ -78,43 +78,54 @@
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-          <div class="btn-group me-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-          </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-            <span data-feather="calendar"></span>
-            This week
-          </button>
-        </div>
+        <h1 class="h2">History Transaksi</h1>
       </div>
 
-      <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+      <form method="GET" action="{{ url()->secure(route('admin.dashboard', [], false)) }}" class="mb-3">
+        <label for="status" class="form-label">Filter Berdasarkan Status</label>
+        <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+            <option value="">Semua Status</option>
+            <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
+            <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+        </select>
+      </form>
 
-      <h2>Section title</h2>
       <div class="table-responsive">
-        <table class="table table-striped table-sm">
-          <thead>
+      <table class="table table-striped table-sm">
+        <thead>
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email Address</th>
+                <th scope="col">Address</th>
+                <th scope="col">Phone</th>
+                <th scope="col">List Order</th>
+                <th scope="col">Total Price</th>
+                <th scope="col">Status</th>
+                <th scope="col">Updated At</th>
             </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
+            @foreach($data as $order)
             <tr>
-              <td>1,001</td>
-              <td>random</td>
-              <td>data</td>
-              <td>placeholder</td>
-              <td>text</td>
+                <td>{{ $order->id }}</td>
+                <td>{{ $order->name }}</td>
+                <td>{{ $order->email }}</td>
+                <td>{{ $order->address }}</td>
+                <td>{{ $order->phone }}</td>
+                <td>
+                  @foreach($order->products as $product)
+                      {{ $product->name }} ({{ $product->pivot->quantity }})<br>
+                  @endforeach
+                </td>
+                <td>{{ money($order->total_price, 'IDR', true) }}</td>
+                <td>{{ ucfirst($order->status) }}</td>
+                <td>{{ $order->updated_at->format('d-m-Y H:i:s') }}</td>
             </tr>
-          </tbody>
-        </table>
+            @endforeach
+        </tbody>
+      </table>
+
       </div>
     </main>
   </div>

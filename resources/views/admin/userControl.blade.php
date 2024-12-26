@@ -55,29 +55,14 @@
             <form action="{{ url()->secure(route('admin.addProduct', [], false)) }}" method="POST" enctype="multipart/form-data">
               @csrf
               <div class="mb-3">
-                  <label for="name" class="form-label">Nama Produk</label>
+                  <label for="name" class="form-label">Nama Pengguna</label>
                   <input type="text" name="name" class="form-control form-control-lg" id="name" placeholder="Enter Name" required>
               </div>
               <div class="mb-3">
-                  <label for="deskripsi" class="form-label">Deskripsi Produk</label>
+                  <label for="deskripsi" class="form-label">Password</label>
                   <input type="text" name="description" class="form-control form-control-lg" id="description" placeholder="Enter Product Name" required>
               </div>
-              <div class="mb-3">
-                  <label for="price" class="form-label">Harga Produk</label>
-                  <input type="number" name="price" class="form-control form-control-lg" id="price" placeholder="Enter harga" required>
-              </div>
-              <div class="mb-3">
-                  <label for="stock" class="form-label">Stok Produk</label>
-                  <input type="number" name="stock" class="form-control form-control-lg" id="stock" placeholder="Enter stok" required>
-              </div>
-              <div class="mb-4">
-                  <label for="image" class="form-label">Input Gambar</label>
-                  <input type="file" name="image" class="form-control form-control-lg" id="image" placeholder="Enter image" required>
-              </div>
-              @error('image')
-                <p style="color: red;">{{ $message }}</p>
-              @enderror
-              <button type="submit" class="btn btn-primary btn-lg" style="padding-left: 2.5rem; padding-right: 2.5rem;">Tambah Produk</button>
+              <button type="submit" class="btn btn-primary btn-lg" style="padding-left: 2.5rem; padding-right: 2.5rem;">Tambah User</button>
             </form>
           </div>
         </div>
@@ -85,22 +70,20 @@
         <div class="row align-items-md-stretch">
           <div class="col-md-12">
             <div class="h-100 p-5 bg-light border rounded-3">
-              <table class="table table-striped table-sm" id="productTable">
-                <thead>
-                  <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Nama</th>
-                    <th scope="col">Harga</th>
-                    <th scope="col">Stok</th>
-                    <th scope="col">Deskripsi</th>
-                    <th scope="col">Gambar</th>
-                    <th scope="col">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-              </table>
+                <table class="table table-striped table-sm" id="productTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nama Pengguna</th>
+                            <th scope="col">Dibuat Pada</th>
+                            <th scope="col">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data dari AJAX akan dimasukkan di sini -->
+                    </tbody>
+                </table>
             </div>
           </div>
         </div>
@@ -118,20 +101,12 @@
                           @method('PUT')
                           <input type="hidden" id="editId">
                           <div class="mb-3">
-                              <label for="editName" class="form-label">Nama Produk</label>
+                              <label for="editName" class="form-label">Nama Pengguna</label>
                               <input type="text" id="editName" name="name" class="form-control" required>
                           </div>
                           <div class="mb-3">
-                              <label for="editDescription" class="form-label">Deskripsi Produk</label>
+                              <label for="editDescription" class="form-label">Password pengguna</label>
                               <input type="text" id="editDescription" name="description" class="form-control" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="editPrice" class="form-label">Harga Produk</label>
-                              <input type="number" id="editPrice" name="price" class="form-control" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="editStock" class="form-label">Stok Produk</label>
-                              <input type="number" id="editStock" name="stock" class="form-control" required>
                           </div>
                           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                       </form>
@@ -140,9 +115,6 @@
           </div>
         </div>
     
-        <footer class="pt-3 mt-4 text-muted border-top">
-          &copy; 2021
-        </footer>
       </div>
     </main>
 
@@ -151,40 +123,39 @@
     <!-- AJAX Script -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-      $(document).ready(function () {
-        // Fungsi untuk mengambil data produk
-        function fetchProducts() {
-          $.ajax({
-            url: "{{ url()->secure(route('admin.getProducts', [], false)) }}",
-            method: "GET",
-            success: function (data) {
-              let productTable = $('#productTable tbody');
-              productTable.empty(); // Kosongkan tabel sebelum mengisi ulang
-  
-              data.forEach((product, index) => {
-                productTable.append(`
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td>${product.name}</td>
-                      <td>${product.price}</td>
-                      <td>${product.stock}</td>
-                      <td>${product.description}</td>
-                      <td><img src="/storage/${product.file_path}" alt="${product.name}" width="50" height="50"></td>
-                      <td>
-                        <button class="btn btn-warning btn-sm edit-btn" data-id="${product.id}">Edit</button>
-                        <button class="btn btn-danger btn-sm delete-btn" data-id="${product.id}">Delete</button>
-                      </td>
-                    </tr>
-                `);
+        $(document).ready(function () {
+          // Fungsi untuk mengambil data pengguna
+          function fetchUsers() {
+              $.ajax({
+                  url: "{{ url()->secure(route('admin.getUser', [], false)) }}", // Endpoint dari Laravel
+                  method: "GET",
+                  success: function (users) {
+                      let userTable = $('#productTable tbody');
+                      userTable.empty(); // Kosongkan tabel sebelum mengisi ulang
+      
+                      users.forEach((user, index) => {
+                          userTable.append(`
+                              <tr>
+                                  <td>${index + 1}</td>
+                                  <td>${user.id}</td>
+                                  <td>${user.name}</td>
+                                  <td>${user.created_at}</td>
+                                  <td>
+                                      <button class="btn btn-warning btn-sm edit-btn" data-id="${user.id}">Edit</button>
+                                      <button class="btn btn-danger btn-sm delete-btn" data-id="${user.id}">Delete</button>
+                                  </td>
+                              </tr>
+                          `);
+                      });
+                  },
+                  error: function () {
+                      alert('Gagal memuat data pengguna.');
+                  }
               });
-            }, error: function () {
-              alert('Gagal memuat produk.');
-            }
-          });
-        }
-  
-        // Panggil fetchProducts saat halaman dimuat
-        fetchProducts();
+          }
+      
+          // Panggil fungsi fetchUsers saat halaman dimuat
+          fetchUsers();
   
         // Tangani form submit untuk menambahkan produk
         $('#productForm').on('submit', function (e) {

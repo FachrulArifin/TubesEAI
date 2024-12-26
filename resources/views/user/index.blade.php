@@ -44,7 +44,7 @@
           </svg>
           </button>
         </form>
-        <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+        <form action="{{ url()->secure(route('logout', [], false)) }}" method="POST" style="display: inline;">
           @csrf
           <button type="submit" class="btn btn-outline-primary">Logout</button>
         </form>
@@ -64,7 +64,7 @@
             <h5 class="modal-title" id="exampleModalLabel">Keranjang Belanja</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <form action="{{ route('user.viewCheckout') }}" method="post">
+          <form action="{{ url()->secure(route('user.viewCheckout', [], false)) }}" method="post">
             @csrf
             <div class="modal-body">
                 <table class="table">
@@ -122,7 +122,7 @@
           <h1 class="fw-light">Durian Runtuh</h1>
           <p class="lead text-muted">merupakan platform pembelian durian secara online dan memiliki berbagai jenis durian.</p>
           <div class="container">
-            <form action="{{ route('products.search') }}" method="POST" class="mb-4">
+            <form action="{{ url()->secure(route('products.search', [], false)) }}" method="POST" class="mb-4">
               @csrf
               <div class="input-group">
                 <input type="text" name="query" class="form-control" placeholder="Cari produk..." value="{{ old('query') }}">
@@ -142,7 +142,7 @@
             <div class="col">
 
               <!-- Card Start -->
-              <form action="{{ route('addToCard') }}" method="post">
+              <form action="{{ url()->secure(route('addToCard', [], false)) }}" method="post">
                   @csrf
                   <div class="card mb-3 h-100" style="width: 18rem;">
                       <img src="{{ asset('storage/' . $item->file_path) }}" class="card-img-top" alt="Durian" style="height: 200px;">
@@ -160,8 +160,6 @@
                       </div>              
                   </div>
               </form>
-
-              
               <!-- End Card -->
 
             </div>
@@ -174,15 +172,6 @@
 
   </main>
 
-  <footer class="text-muted py-5">
-    <div class="container">
-      <p class="float-end mb-1">
-        <a href="#">Back to top</a>
-      </p>
-      <p class="mb-1">Album example is &copy; Bootstrap, but please download and customize it for yourself!</p>
-      <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.0/getting-started/introduction/">getting started guide</a>.</p>
-    </div>
-  </footer>
   </body>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 

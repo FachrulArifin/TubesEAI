@@ -12,7 +12,7 @@
 
     <!-- Midtrans Snap Script -->
     <script type="text/javascript"
-        src="https://app.stg.midtrans.com/snap/snap.js"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key="{{ config('midtrans.client_key') }}"></script>
     <!-- Replace with https://app.midtrans.com/snap/snap.js for production -->
 </head>
@@ -38,7 +38,7 @@
                                 <h6 class="my-0">{{ $order['names'][$item] }}</h6>
                                 <small class="text-muted">({{ money($order['prices'][$item], 'IDR', true) }} x {{ $order['quantities'][$item] }})</small>
                             </div>
-                            <span class="text-muted">{{ money($order['prices'][$item], 'IDR', true) }}</span>
+                            <span class="text-muted">{{ money($order['prices'][$item]*$order['quantities'][$item], 'IDR', true) }}</span>
                         </li>
                         @endforeach
                         <li class="list-group-item d-flex justify-content-between">
@@ -102,13 +102,14 @@
             const formData = new FormData(this);
 
             // AJAX request to server to handle checkout and retrieve Snap token
-            fetch("{{ route('user.checkout') }}", {
+            fetch("{{ url()->secure(route('user.checkout', [], false)) }}", {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 },
                 body: formData,
             })
+
             .then(response => response.json())
             .then(data => {
               console.log(data); // Check if snapToken is present

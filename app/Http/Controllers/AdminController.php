@@ -2,23 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Products;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 
 class AdminController extends Controller
 {
-    public function dashboard(){
-        return view('admin.dashboard');
+    public function dashboard(Request $request){
+        $query = Order::with('products');
+
+        if ($request->has('status') && $request->status != '') {
+            // Filter berdasarkan status jika ada pilihan
+            $query->where('status', $request->status);
+        }
+
+        // Urutkan berdasarkan status terlebih dahulu, lalu waktu terbaru
+        $query->orderByRaw("FIELD(status, 'paid', 'unpaid') ASC")
+            ->orderBy('updated_at', 'DESC');
+
+        $data = $query->get();
+
+        return view('admin.dashboard', compact('data'));
     }
 
     public function viewAddProduct(){
         return view('admin.addProduct');
     }
 
-    public function viewHistory(){
-        return view('admin.history');
+    public function viewUserList(){
+        return view('admin.userControl');
     }
 
     public function addProduct(Request $request)
@@ -49,6 +64,11 @@ class AdminController extends Controller
     public function getProducts(){
         $products = Products::all(); // Mengambil semua produk dari database
         return response()->json($products);
+    }
+
+    public function getUser(){
+        $user = User::all(); // Mengambil semua produk dari database
+        return response()->json($user);
     }
 
     public function getProductById($id)

@@ -12,7 +12,7 @@
             <p class="lead fw-normal mb-0 me-3">Sign in</p>
           </div>
 
-          <form action="{{route('loginAccount')}}" method="POST">
+          <form action="{{ url()->secure(route('loginAccount', [], false))}}" method="POST">
             @csrf
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>

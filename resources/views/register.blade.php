@@ -7,7 +7,7 @@
           <p class="lead fw-normal mb-0 me-3">Register</p>
         </div>
         
-        <form action="{{ route('createAccount') }}" method="POST">
+        <form action="{{ url()->secure(route('createAccount', [], false)) }}" method="POST">
           @csrf
           <div class="mb-3">
               <label for="name" class="form-label">Nama</label>

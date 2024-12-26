@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use App\Models\Products;
-use Illuminate\Foundation\Exceptions\Renderer\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Midtrans\Config;
@@ -12,132 +12,162 @@ use Midtrans\Snap;
 
 class OrderController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         return view('home');
     }
 
-    public function viewCheckoutPage(){
+    public function viewCheckoutPage()
+    {
         return view('user.order.checkout');
     }
 
-    public function viewCheckout(Request $request){
-        // Menjumlahkan semua harga yang ada dalam array prices
-        $total_price = array_sum($request->prices);
+    public function viewCheckout(Request $request)
+    {
+        $totalPrice = array_sum(array_map(function ($price, $quantity) {
+            return $price * $quantity; // Mengalikan harga dengan jumlah untuk setiap item
+        }, $request->prices, $request->quantities));
 
-        // Menambahkan total_price ke dalam data request
-        $request->request->add([
-            'total_price' => $total_price,
-        ]);
-        $order = $request->all();
-
+        $request->merge(['total_price' => $totalPrice]);
+        $orderData = $request->all();
         $user = Auth::user();
 
-        // Mengakses nama dan email
-        $name = $user->name;
-        $email = $user->email;
-        
-        return view('user.order.checkout', compact('order', 'name', 'email'));
+        return view('user.order.checkout', [
+            'order' => $orderData,
+            'name' => $user->name,
+            'email' => $user->email,
+            'total_price' => $request->total_price
+        ]);
     }
 
     public function checkout(Request $request)
     {
         try {
-            // Validasi input
-            $validated = $request->validate([
-                'name' => 'required|string',
-                'email' => 'nullable|email',
-                'address' => 'required|string',
-                'phone' => 'required|string',
-                'total_price' => 'required|integer',
-                'products' => 'required|array',
-                'quantities' => 'required|array',
-            ]);
-    
-            // Proses data pesanan
-            $order = Order::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'address' => $validated['address'],
-                'phone' => $validated['phone'],
-                'total_price' => $validated['total_price'],
-            ]);
-    
-            foreach ($validated['products'] as $index => $productId) {
-                $order->products()->attach($productId, [
-                    'quantity' => $validated['quantities'][$index],
-                    'price' => Products::find($productId)->price,
-                ]);
-            }
-    
-            // Konfigurasi Midtrans
-            \Midtrans\Config::$serverKey = config('midtrans.server_key');
-            \Midtrans\Config::$isProduction = config('midtrans.is_production');
-            \Midtrans\Config::$isSanitized = true;
-            \Midtrans\Config::$is3ds = true;
-    
-            // Buat payload untuk Midtrans
-            $payload = [
-                'transaction_details' => [
-                    'order_id' => $order->id,
-                    'gross_amount' => $order->total_price,
-                ],
-                'customer_details' => [
-                    'first_name' => $order->name,
-                    'email' => $order->email,
-                    'phone' => $order->phone,
-                ],
-                'item_details' => $order->products->map(function ($product) {
-                    return [
-                        'id' => $product->id,
-                        'price' => $product->pivot->price,
-                        'quantity' => $product->pivot->quantity,
-                        'name' => $product->name,
-                    ];
-                })->toArray(),
-            ];
-    
-            // Dapatkan Snap token
-            $snapToken = \Midtrans\Snap::getSnapToken($payload);
-    
-            // Kembalikan respons JSON
+            $validated = $this->validateCheckoutData($request);
+
+            $order = $this->createOrder($validated);
+
+            $snapToken = $this->generateSnapToken($order);
+
             return response()->json([
                 'snapToken' => $snapToken,
                 'orderId' => $order->id,
-            ]);
+                'total_price' => $order->total_price
+            ], 200, ['Content-Security-Policy' => "default-src 'self'; connect-src https:"]);
         } catch (\Exception $e) {
-            // Tangani error dan log
             Log::error('Checkout Error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function callback(Request $request){
+    public function callback(Request $request)
+    {
         try {
             Log::info('Received Midtrans callback', $request->all());
-    
+
+            // Calculate the expected signature
             $serverKey = config('midtrans.server_key');
-            $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
-            
-            if ($hashed == $request->signature_key) {
-                if ($request->transaction_status == 'settlement') {
+            $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+            // Validate the signature key
+            if ($hashed === $request->signature_key) {
+                if ($request->transaction_status === 'settlement') {
                     $order = Order::find($request->order_id);
                     if ($order) {
                         $order->update(['status' => 'paid']);
                     } else {
-                        //\Log::error('Order not found', ['order_id' => $request->order_id]);
+                        Log::error('Order not found', ['order_id' => $request->order_id]);
                     }
                 }
             } else {
-                //\Log::error('Signature mismatch', ['expected' => $hashed, 'received' => $request->signature_key]);
+                Log::error('Signature mismatch', [
+                    'expected' => $hashed,
+                    'received' => $request->signature_key,
+                ]);
             }
-        } catch (Exception $e) {
-            //\Log::error('Error in Midtrans callback', ['error' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('Error in Midtrans callback', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
 
-    public function invoice($id){
-        $order = Order::find($id);
-        return view('invoice', compact('order'));
+
+    public function invoice($id)
+    {
+        $order = Order::with('products')->where('id', $id)->first();
+
+        return view('user.order.invoice', compact('order'));
+    }
+
+    private function validateCheckoutData(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string',
+            'email' => 'nullable|email',
+            'address' => 'required|string',
+            'phone' => 'required|string',
+            'total_price' => 'required|integer',
+            'products' => 'required|array',
+            'quantities' => 'required|array',
+        ]);
+    }
+
+    private function createOrder($data)
+    {
+        $order = Order::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'address' => $data['address'],
+            'phone' => $data['phone'],
+            'total_price' => $data['total_price'],
+        ]);
+
+        foreach ($data['products'] as $index => $productId) {
+            $product = Products::find($productId);
+            if ($product) {
+                $order->products()->attach($productId, [
+                    'quantity' => $data['quantities'][$index],
+                    'price' => $product->price,
+                ]);
+            }
+        }
+
+        return $order;
+    }
+
+    private function generateSnapToken($order)
+    {
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $order->id,
+                'gross_amount' => $order->total_price,
+            ],
+            'customer_details' => [
+                'first_name' => $order->name,
+                'email' => $order->email,
+                'phone' => $order->phone,
+            ],
+            'item_details' => $order->products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'price' => $product->pivot->price,
+                    'quantity' => $product->pivot->quantity,
+                    'name' => $product->name,
+                ];
+            })->toArray(),
+        ];
+
+        return Snap::getSnapToken($payload);
+    }
+
+    private function validateMidtransSignature(Request $request)
+    {
+        $serverKey = config('midtrans.server_key');
+        $expectedSignature = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+        return $expectedSignature === $request->signature_key;
     }
 }

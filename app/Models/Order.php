@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
     protected $guarded =[];
     
-    protected $fillable = ['name', 'email', 'address', 'phone', 'total_price'];
+    protected $fillable = ['name', 'email', 'address', 'phone', 'total_price', 'status'];
 
     public function products()
     {

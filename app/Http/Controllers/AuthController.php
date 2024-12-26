@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\UserLoggedIn;
+use App\Models\Order;
 use App\Models\Products;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -35,9 +36,6 @@ class AuthController extends Controller
         $data = Products::where('name', 'like', '%' . $query . '%')
                     ->orWhere('description', 'like', '%' . $query . '%')
                     ->get();
-
-        //dd($data);
-        //return view('your-view-file-name', compact('data'));
         
         return view('index', compact('data'));
     }
@@ -63,10 +61,10 @@ class AuthController extends Controller
 
             // Redirect berdasarkan role
             if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
+                $data = Order::with('products')->get();
+                return view('admin.dashboard', ['data' => $data]);
             } elseif ($user->role === 'user') {
                 $data = $user->products;
-                //return view('index', compact('data'));
                 return redirect()->route('user.showUser')->with('data', $data);
             } else {
                 Auth::logout(); // Logout jika role tidak valid
