@@ -18,6 +18,7 @@
                     <li class="text-black">{{$order->name}}</li>
                     <li class="text-muted mt-1"><span class="text-black">Invoice</span> {{$order->id}}</li>
                     <li class="text-black mt-1">{{$order->updated_at}}</li>
+                    <li class="text-black mt-1">Status {{$order->status}}</li>
                   </ul>
                 </div>
 

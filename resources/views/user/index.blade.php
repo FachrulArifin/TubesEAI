@@ -129,7 +129,10 @@
                 <button type="submit" class="btn btn-primary">Cari</button>
               </div>
             </form>
+            <a href="{{ route('homePage') }}">Reset</a>
           </div>
+
+
         </div>
       </div>
     </section>

@@ -77,9 +77,7 @@ class AuthController extends Controller
 
 
     public function logout(){
-        session()->forget('cart');
         Auth::logout();
         return redirect()->route('homePage');
     }
 }
-

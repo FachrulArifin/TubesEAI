@@ -51,7 +51,7 @@
 
 <div class="container-fluid mt- 3">
   <div class="row">
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block bg-light sidebar collapse">
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
@@ -64,12 +64,6 @@
             <a class="nav-link" href="{{ url()->secure(route('admin.viewAddProduct', [], false)) }}">
               <span data-feather="file"></span>
               Tambah Produk
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url()->secure(route('admin.showUser', [], false)) }}">
-              <span data-feather="shopping-cart"></span>
-              Daftar Pengguna
             </a>
           </li>
         </ul>

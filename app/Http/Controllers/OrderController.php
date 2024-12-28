@@ -52,7 +52,8 @@ class OrderController extends Controller
             return response()->json([
                 'snapToken' => $snapToken,
                 'orderId' => $order->id,
-                'total_price' => $order->total_price
+                'total_price' => $order->total_price,
+
             ], 200, ['Content-Security-Policy' => "default-src 'self'; connect-src https:"]);
         } catch (\Exception $e) {
             Log::error('Checkout Error: ' . $e->getMessage());
